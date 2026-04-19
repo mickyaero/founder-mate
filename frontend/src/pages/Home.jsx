@@ -8,6 +8,7 @@ export default function Home() {
   const [role, setRole] = useState("");
   const [location, setLocation] = useState("");
   const [topics, setTopics] = useState("");
+  const [personality, setPersonality] = useState("");
   const [product, setProduct] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -23,7 +24,7 @@ export default function Home() {
     setSubmitting(true);
     const payload =
       mode === "cofounder"
-        ? { mode, linkedin_url: linkedin.trim(), role: role.trim(), location: location.trim(), topics: topics.trim() }
+        ? { mode, linkedin_url: linkedin.trim(), role: role.trim(), location: location.trim(), topics: topics.trim(), personality: personality.trim() }
         : { mode, linkedin_url: linkedin.trim(), product: product.trim(), location: location.trim() };
     navigate("/results", { state: { payload } });
   };
@@ -47,7 +48,7 @@ export default function Home() {
             style={{ fontSize: 18, color: "var(--text-dim)", marginTop: 8 }}
             data-testid="home-tagline"
           >
-            Read them before you reach them.
+            We find and get you connected.
           </p>
         </div>
 
@@ -92,6 +93,15 @@ export default function Home() {
                   onChange={(e) => setRole(e.target.value)}
                   placeholder="Product/growth person with D2C experience"
                   data-testid="input-role"
+                />
+              </Field>
+              <Field label="Personality traits">
+                <input
+                  className="sn-input"
+                  value={personality}
+                  onChange={(e) => setPersonality(e.target.value)}
+                  placeholder="Strong communicator, entrepreneurial, hands-on, data-driven"
+                  data-testid="input-personality"
                 />
               </Field>
               <Field label="Location">

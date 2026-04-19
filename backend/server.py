@@ -48,6 +48,7 @@ class SearchRequest(BaseModel):
     role: Optional[str] = None
     location: Optional[str] = None
     topics: Optional[str] = None
+    personality: Optional[str] = None
     product: Optional[str] = None
 
 
@@ -298,7 +299,8 @@ def score_candidate(
 
 
 async def draft_approach(
-    user: Dict[str, Any], cand: Dict[str, Any], warm_path: Dict[str, Any], post: Optional[Dict[str, Any]]
+    user: Dict[str, Any], cand: Dict[str, Any], warm_path: Dict[str, Any], post: Optional[Dict[str, Any]],
+    personality: Optional[str] = None,
 ) -> str:
     target_name = cand.get("name") or "there"
     your_name = user.get("name") or "I"
@@ -309,11 +311,16 @@ async def draft_approach(
         "Keep under 110 words. No emojis. No flattery. Reference a specific detail from their "
         "recent post when provided, and mention the warm connection naturally."
     )
+    personality_line = (
+        f"The founder wants someone who is: {personality}. Analyze the candidate's posts and career to assess if they match these traits.\n"
+        if personality else ""
+    )
     user_prompt = (
         f"Sender: {your_name} ({user.get('title','')}).\n"
         f"Target: {target_name} ({cand.get('title','')} at {cand.get('company','')}).\n"
         f"Warm path: {path_desc}.\n"
         f"Their recent post: {post_text[:400] if post_text else '(none)'}.\n"
+        f"{personality_line}"
         "Write the DM body only."
     )
     out = await llm_complete(system, user_prompt)
@@ -553,6 +560,7 @@ async def _do_search(req: SearchRequest):
             cand={"name": p["cand_name"], "title": p["cand_title"], "company": p["cand_company"]},
             warm_path=p["warm_path"],
             post=p["cpost"],
+            personality=req.personality,
         )
         for p in prepped
     ]
