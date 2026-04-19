@@ -103,7 +103,16 @@ export default function Results() {
           </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-mute)", letterSpacing: "0.14em" }} data-testid="elapsed-time">
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 20,
+              color: "#ffffff",
+              fontWeight: 700,
+              letterSpacing: "0.05em",
+            }}
+            data-testid="elapsed-time"
+          >
             {elapsed.toFixed(1)}s
           </span>
           <button className="sn-btn-ghost" onClick={() => navigate("/")} data-testid="new-search-btn">
@@ -113,13 +122,14 @@ export default function Results() {
       </div>
 
       {!data && !error && (
-        <div style={{ padding: "80px 40px", maxWidth: 560, margin: "0 auto" }}>
+        <div style={{ padding: "80px 40px", maxWidth: 620, margin: "0 auto" }}>
           <div
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: 10,
-              color: "var(--text-mute)",
-              letterSpacing: "0.24em",
+              fontSize: 13,
+              color: "#6ee7b7",
+              letterSpacing: "0.15em",
+              fontWeight: 700,
               marginBottom: 28,
             }}
           >

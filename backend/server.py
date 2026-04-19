@@ -124,13 +124,21 @@ async def _call_emergent(system: str, user: str) -> Optional[str]:
         return None
 
 
-async def llm_complete(system: str, user: str) -> str:
+async def llm_complete(system: str, user: str, timeout: float = 15.0) -> str:
     msgs = [{"role": "system", "content": system}, {"role": "user", "content": user}]
-    out = await _call_user_proxy(msgs)
-    if out:
-        return out
-    out = await _call_emergent(system, user)
-    return out or ""
+    try:
+        out = await asyncio.wait_for(_call_user_proxy(msgs, timeout=timeout), timeout=timeout)
+        if out:
+            return out
+    except asyncio.TimeoutError:
+        logger.warning("User LLM proxy timed out")
+    try:
+        out = await asyncio.wait_for(_call_emergent(system, user), timeout=timeout)
+        if out:
+            return out
+    except asyncio.TimeoutError:
+        logger.warning("Emergent LLM timed out")
+    return ""
 
 
 # ------------- Core flow helpers -------------
@@ -155,9 +163,9 @@ async def enrich_person(url: str) -> Dict[str, Any]:
 async def get_reactors(url: str) -> List[Dict[str, Any]]:
     data = await crust_get(
         "/screener/linkedin_posts",
-        {"person_linkedin_url": url, "fields": "reactors", "limit": 3, "max_reactors": 50},
+        {"person_linkedin_url": url, "fields": "reactors", "limit": 2, "max_reactors": 20},
         CRUSTDATA_UNPUBLISHED_KEY,
-        timeout=120.0,
+        timeout=30.0,
     )
     reactors: List[Dict[str, Any]] = []
     posts = []
@@ -240,7 +248,7 @@ async def search_candidates(filters: Dict[str, Any]) -> List[Dict[str, Any]]:
 
     async def _post(flt):
         body = {"filters": flt, "page": 1}
-        data = await crust_post("/screener/person/search/", body, CRUSTDATA_PUBLISHED_KEY, timeout=60.0)
+        data = await crust_post("/screener/person/search/", body, CRUSTDATA_PUBLISHED_KEY, timeout=30.0)
         if isinstance(data, dict):
             return data.get("profiles") or data.get("results") or data.get("data") or []
         if isinstance(data, list):
@@ -372,7 +380,19 @@ async def draft_approach(
         "Write the DM body only."
     )
     out = await llm_complete(system, user_prompt)
-    return (out or "").strip()
+    body = (out or "").strip()
+    if not body:
+        # Fallback template
+        name_short = (target_name.split(" ")[0] if target_name and target_name != "there" else "there")
+        path_line = f"We share a connection through {path_desc.lower()}." if path_desc else ""
+        post_line = f"Saw your recent post — really resonated." if post_text else ""
+        body = (
+            f"Hi {name_short},\n\n"
+            f"{path_line} {post_line}\n\n"
+            f"I'm working on something I'd love your take on — got 15 min this week?\n\n"
+            f"Best,\n{your_name.split(' ')[0] if your_name else 'Founder'}"
+        ).strip()
+    return body
 
 
 # ------------- Endpoints -------------
@@ -453,7 +473,7 @@ async def _do_search(req: SearchRequest):
         if curl and curl == self_url_low:
             continue
         cand_list.append(c)
-        if len(cand_list) >= 5:
+        if len(cand_list) >= 3:
             break
 
     # Step 4+5+8: enrich + reactors + recent_post for each candidate — all in ONE parallel gather
