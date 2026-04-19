@@ -66,6 +66,16 @@ export default function LoadingSteps({ done }) {
       }}
       data-testid="loading-steps"
     >
+      <div style={{display:'flex',justifyContent:'center',marginBottom:24}} className={done ? '' : 'logo-pulse'}>
+        <svg width="48" height="48" viewBox="0 0 64 64" fill="none" stroke="#6ee7b7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 36l8-8 6 2 8-8"/>
+          <path d="M52 28l-8 8-6-2-8 8"/>
+          <path d="M12 36c-4 4-4 8 0 12s8 4 12 0l4-4"/>
+          <path d="M52 28c4-4 4-8 0-12s-8-4-12 0l-4 4"/>
+          <path d="M20 22l6-6c2-2 6-2 8 0l2 2"/>
+          <path d="M44 42l-6 6c-2 2-6 2-8 0l-2-2"/>
+        </svg>
+      </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {STEPS.map((s, i) => {
           const state = i < active || done ? "done" : i === active ? "active" : "pending";
