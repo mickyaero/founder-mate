@@ -105,11 +105,11 @@ body {
 /* Input */
 .sn-input {
     width: 100%;
-    background: transparent;
-    border: 1px solid var(--border-soft-2);
+    background: #141318;
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 8px;
     padding: 12px 14px;
-    color: var(--text);
+    color: #ffffff;
     font-family: var(--font-sans);
     font-size: 14px;
     transition:
@@ -117,12 +117,12 @@ body {
         background-color 180ms ease;
 }
 .sn-input::placeholder {
-    color: var(--text-mute);
+    color: #6b6570;
 }
 .sn-input:focus {
     outline: none;
     border-color: var(--mint);
-    background: rgba(110, 231, 183, 0.03);
+    background: rgba(110, 231, 183, 0.05);
 }
 
 /* Button */
@@ -189,7 +189,7 @@ body {
     font-size: 13px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--text-mute);
+    color: #8a8494;
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
@@ -197,7 +197,7 @@ body {
     transition: color 180ms ease, border-color 180ms ease;
 }
 .sn-tab[data-active='true'] {
-    color: var(--text);
+    color: #6ee7b7;
     border-bottom-color: var(--mint);
 }
 

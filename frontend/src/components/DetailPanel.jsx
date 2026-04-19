@@ -60,6 +60,44 @@ export default function DetailPanel({ candidate }) {
         </ul>
       </div>
 
+      {/* Personality Match */}
+      {typeof candidate.personality_score === "number" && (
+        <div data-testid="personality-match">
+          <div className="section-label">PERSONALITY MATCH</div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10 }}>
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 28,
+                color: "var(--mint)",
+                letterSpacing: "-0.02em",
+              }}
+              data-testid="personality-score"
+            >
+              {candidate.personality_score}
+              <span style={{ fontSize: 14, color: "var(--mint)", marginLeft: 2 }}>/10</span>
+            </span>
+            {candidate.inferred_traits?.length > 0 && (
+              <span style={{ fontSize: 12, color: "var(--text-dim)" }}>
+                {candidate.inferred_traits.slice(0, 4).join(" · ")}
+              </span>
+            )}
+          </div>
+          {candidate.personality_reasoning?.length > 0 && (
+            <ul
+              style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 6 }}
+            >
+              {candidate.personality_reasoning.map((r, i) => (
+                <li key={i} style={{ display: "flex", gap: 10, fontSize: 12, color: "var(--text-dim)" }}>
+                  <span style={{ color: "var(--mint)" }}>·</span>
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       {/* Warm Path */}
       <div>
         <div className="section-label">WARM PATH</div>

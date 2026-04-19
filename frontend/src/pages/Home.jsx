@@ -194,7 +194,18 @@ export default function Home() {
 function Field({ label, children }) {
   return (
     <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-      <span className="section-label" style={{ marginBottom: 0 }}>{label}</span>
+      <span
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: 10,
+          letterSpacing: "0.24em",
+          color: "#ede9e3",
+          fontWeight: 500,
+          textTransform: "uppercase",
+        }}
+      >
+        {label}
+      </span>
       {children}
     </label>
   );

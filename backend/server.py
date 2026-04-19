@@ -298,6 +298,54 @@ def score_candidate(
     return min(100, score)
 
 
+async def infer_personality(cand_data: Dict[str, Any], posts: List[str], personality_traits: str) -> Dict[str, Any]:
+    """Ask LLM to infer personality match score (1-10), inferred traits, and reasoning bullets."""
+    headline = cand_data.get("headline") or cand_data.get("title") or ""
+    summary = cand_data.get("summary") or cand_data.get("about") or ""
+    education = ", ".join(
+        _names_from(cand_data.get("all_schools") or cand_data.get("education_background") or [], ["school_name", "name", "school"])
+    )
+    employers = _names_from(cand_data.get("all_employers") or cand_data.get("employer") or [], ["company_name", "name", "employer_name"])
+    career_summary = " → ".join(employers[:6])
+    post_texts = "\n---\n".join((p or "")[:300] for p in posts if p)
+
+    system = (
+        "You infer a LinkedIn candidate's personality from their profile data and score "
+        "how well they match the founder's preferences. Return STRICT JSON only, no prose."
+    )
+    user = (
+        "CANDIDATE DATA:\n"
+        f"Headline: {headline}\n"
+        f"Summary: {summary[:600]}\n"
+        f"Recent posts: {post_texts[:1200] if post_texts else '(none)'}\n"
+        f"Career: {career_summary}\n"
+        f"Education: {education}\n\n"
+        f"FOUNDER WANTS: {personality_traits}\n\n"
+        "Infer this candidate's personality from the data above. Score how well they match the founder's preferences 1-10. Return JSON only:\n"
+        '{"personality_score": 8, "inferred_traits": ["entrepreneurial", "strong communicator"], "reasoning": ["Posted 3x about startup life", "High engagement shows strong network"]}'
+    )
+    out = await llm_complete(system, user)
+    try:
+        s = (out or "").strip()
+        if s.startswith("```"):
+            s = s.strip("`")
+            if s.lower().startswith("json"):
+                s = s[4:]
+        # Extract JSON object substring if model added prose
+        if "{" in s and "}" in s:
+            s = s[s.index("{"): s.rindex("}") + 1]
+        parsed = json.loads(s)
+        score = int(parsed.get("personality_score") or 0)
+        return {
+            "personality_score": max(0, min(10, score)),
+            "inferred_traits": parsed.get("inferred_traits") or [],
+            "personality_reasoning": parsed.get("reasoning") or [],
+        }
+    except Exception as e:
+        logger.warning(f"personality inference parse failed: {e} | out={str(out)[:200]}")
+        return {"personality_score": None, "inferred_traits": [], "personality_reasoning": []}
+
+
 async def draft_approach(
     user: Dict[str, Any], cand: Dict[str, Any], warm_path: Dict[str, Any], post: Optional[Dict[str, Any]],
     personality: Optional[str] = None,
@@ -567,6 +615,28 @@ async def _do_search(req: SearchRequest):
     message_bodies = await asyncio.gather(*msg_tasks, return_exceptions=True) if msg_tasks else []
     message_bodies = ["" if isinstance(b, BaseException) else b for b in message_bodies]
 
+    # Personality inference (only when founder provided traits)
+    if req.personality and prepped:
+        pers_tasks = [
+            infer_personality(
+                cand_data=enrich_results[i] if i < len(enrich_results) else {},
+                posts=[(p["cpost"] or {}).get("text", "")],
+                personality_traits=req.personality,
+            )
+            for i, p in enumerate(prepped)
+        ]
+        pers_results = await asyncio.gather(*pers_tasks, return_exceptions=True)
+        pers_results = [
+            {"personality_score": None, "inferred_traits": [], "personality_reasoning": []}
+            if isinstance(x, BaseException) else x
+            for x in pers_results
+        ]
+    else:
+        pers_results = [
+            {"personality_score": None, "inferred_traits": [], "personality_reasoning": []}
+            for _ in prepped
+        ]
+
     candidates_out = []
     for i, p in enumerate(prepped):
         candidates_out.append(
@@ -582,6 +652,9 @@ async def _do_search(req: SearchRequest):
                     "employers": p["cand_employers"][:5],
                 },
                 "score": p["score"],
+                "personality_score": pers_results[i]["personality_score"],
+                "inferred_traits": pers_results[i]["inferred_traits"],
+                "personality_reasoning": pers_results[i]["personality_reasoning"],
                 "bridges": p["bridges"],
                 "shared_schools": p["shared_schools"],
                 "shared_employers": p["shared_employers"],
