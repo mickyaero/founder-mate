@@ -7,13 +7,23 @@ const STEPS = [
   { label: "Analyzing their posts", duration: 10000 },
   { label: "Finding warm connections", duration: 4000 },
   { label: "Drafting personalized approach", duration: 3500 },
+  { label: "Building your connection graph", duration: 600000 }, // holds until `done`
 ];
 
 export default function LoadingSteps({ done }) {
   const [active, setActive] = useState(0);
   const [elapsed, setElapsed] = useState(Array(STEPS.length).fill(0));
   const [flash, setFlash] = useState(-1);
+  const [totalElapsed, setTotalElapsed] = useState(0);
 
+  // Total elapsed timer
+  useEffect(() => {
+    const start = performance.now();
+    const int = setInterval(() => setTotalElapsed((performance.now() - start) / 1000), 300);
+    return () => clearInterval(int);
+  }, []);
+
+  // Step auto-advance
   useEffect(() => {
     if (done) {
       setActive(STEPS.length);
@@ -43,6 +53,7 @@ export default function LoadingSteps({ done }) {
   }, [active, done]);
 
   const progress = Math.min(1, active / STEPS.length);
+  const showDeepNotice = totalElapsed > 90 && !done;
 
   return (
     <div
@@ -64,7 +75,9 @@ export default function LoadingSteps({ done }) {
           const textColor = state === "pending" ? "#4a4458" : "#ede9e3";
           const time =
             state === "done"
-              ? `${(s.duration / 1000).toFixed(1)}s`
+              ? i === STEPS.length - 1
+                ? "✓"
+                : `${(s.duration / 1000).toFixed(1)}s`
               : state === "active"
                 ? `${(elapsed[i] / 1000).toFixed(1)}s`
                 : "";
@@ -86,13 +99,7 @@ export default function LoadingSteps({ done }) {
             >
               <span
                 className={state === "active" ? "sn-pulse" : ""}
-                style={{
-                  color: symColor,
-                  width: 18,
-                  display: "inline-block",
-                  textAlign: "center",
-                  fontSize: 16,
-                }}
+                style={{ color: symColor, width: 18, display: "inline-block", textAlign: "center", fontSize: 16 }}
               >
                 {sym}
               </span>
@@ -145,6 +152,22 @@ export default function LoadingSteps({ done }) {
           }}
         />
       </div>
+
+      {showDeepNotice && (
+        <div
+          style={{
+            marginTop: 18,
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
+            color: "#8a8494",
+            letterSpacing: "0.12em",
+            textAlign: "center",
+          }}
+          data-testid="deep-notice"
+        >
+          Deep network analysis in progress...
+        </div>
+      )}
     </div>
   );
 }

@@ -241,6 +241,36 @@ body {
     }
 }
 
+/* Flow animation for dashed edges */
+@keyframes sn-dash {
+    to {
+        stroke-dashoffset: -20;
+    }
+}
+
+/* Subtle float for graph nodes */
+@keyframes sn-float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-2px);
+    }
+}
+
+/* Bridge pulse glow */
+@keyframes sn-bridge-pulse {
+    0%, 100% {
+        stroke-opacity: 0.35;
+    }
+    50% {
+        stroke-opacity: 0.9;
+    }
+}
+.sn-bridge-pulse {
+    animation: sn-bridge-pulse 2.4s ease-in-out infinite;
+}
+
 /* Verified stamp */
 .sn-stamp {
     display: inline-flex;

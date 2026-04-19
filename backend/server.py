@@ -163,9 +163,9 @@ async def enrich_person(url: str) -> Dict[str, Any]:
 async def get_reactors(url: str) -> List[Dict[str, Any]]:
     data = await crust_get(
         "/screener/linkedin_posts",
-        {"person_linkedin_url": url, "fields": "reactors", "limit": 2, "max_reactors": 20},
+        {"person_linkedin_url": url, "fields": "reactors", "limit": 3, "max_reactors": 50},
         CRUSTDATA_UNPUBLISHED_KEY,
-        timeout=30.0,
+        timeout=90.0,
     )
     reactors: List[Dict[str, Any]] = []
     posts = []
@@ -184,7 +184,7 @@ async def get_recent_post(url: str) -> Optional[Dict[str, Any]]:
         "/screener/linkedin_posts",
         {"person_linkedin_url": url, "limit": 1, "max_reactors": 0},
         CRUSTDATA_UNPUBLISHED_KEY,
-        timeout=120.0,
+        timeout=60.0,
     )
     posts = []
     if isinstance(data, dict):
@@ -473,7 +473,7 @@ async def _do_search(req: SearchRequest):
         if curl and curl == self_url_low:
             continue
         cand_list.append(c)
-        if len(cand_list) >= 3:
+        if len(cand_list) >= 5:
             break
 
     # Step 4+5+8: enrich + reactors + recent_post for each candidate — all in ONE parallel gather
