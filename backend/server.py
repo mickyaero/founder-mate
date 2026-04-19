@@ -126,18 +126,20 @@ async def _call_emergent(system: str, user: str) -> Optional[str]:
 
 async def llm_complete(system: str, user: str, timeout: float = 15.0) -> str:
     msgs = [{"role": "system", "content": system}, {"role": "user", "content": user}]
-    try:
-        out = await asyncio.wait_for(_call_user_proxy(msgs, timeout=timeout), timeout=timeout)
-        if out:
-            return out
-    except asyncio.TimeoutError:
-        logger.warning("User LLM proxy timed out")
+    # PRIMARY: Emergent Universal LLM
     try:
         out = await asyncio.wait_for(_call_emergent(system, user), timeout=timeout)
         if out:
             return out
     except asyncio.TimeoutError:
         logger.warning("Emergent LLM timed out")
+    # FALLBACK: user's external proxy
+    try:
+        out = await asyncio.wait_for(_call_user_proxy(msgs, timeout=timeout), timeout=timeout)
+        if out:
+            return out
+    except asyncio.TimeoutError:
+        logger.warning("User LLM proxy timed out")
     return ""
 
 
