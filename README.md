@@ -147,6 +147,8 @@ Crustdata APIs                    LLM (Claude)
 
 **Micky** — IIT Bombay. Aerospace engineer turned AI builder. Previously built ProofLayer (deep financial verification against SEC XBRL data, top 5 at VibeCon from 20,000 applicants) and DocStruct (document intelligence with fine-tuned SLM).
 
+**Mitul Garg** - Oracle & PES University. AI Engineer, Open source builder. AI Lead for multiple genai implementations to solve business processes. Also founder of env-doctor, an open source tool to resolve ML Environment issues.
+
 ---
 
 *Built in 5 hours at ContextCon — YC's First India Hackathon, Bengaluru, April 19, 2026*
